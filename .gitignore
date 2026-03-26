@@ -8,3 +8,5 @@ build/
 
 *.log
 npm-debug.log*
+
+src/generated/
