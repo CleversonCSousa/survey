@@ -3,6 +3,7 @@ import fastify from "fastify";
 import { usersRoutes } from "./http/routes/users-routes.ts";
 import fastifyJwt from "@fastify/jwt";
 import fastifyCookie from "@fastify/cookie";
+import { surveysRoutes } from "./http/routes/surveys-routes.ts";
 
 export const app = fastify();
 
@@ -12,3 +13,6 @@ app.register(fastifyJwt, {
 });
 
 app.register(usersRoutes);
+app.register(surveysRoutes, {
+  prefix: "surveys",
+});
