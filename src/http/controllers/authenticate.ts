@@ -1,0 +1,71 @@
+import { z } from "zod";
+import { FastifyReply, FastifyRequest } from "fastify";
+import { PrismaUsersRepository } from "@/repositories/prisma-users-repository.ts";
+import { AuthenticateUseCase } from "@/use-cases/authenticate.ts";
+import { InvalidCredentialsError } from "@/use-cases/errors/invalid-credentials-error.ts";
+
+export async function authenticate(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const registerBodySchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+  });
+
+  const { email, password } = registerBodySchema.parse(request.body);
+
+  try {
+    const usersRepository = new PrismaUsersRepository();
+
+    const authenticateUseCase = new AuthenticateUseCase(usersRepository);
+
+    const { user } = await authenticateUseCase.execute({
+      email,
+      password,
+    });
+
+    const token = await reply.jwtSign(
+      {
+        role: user.role,
+      },
+      {
+        sign: {
+          sub: user.id,
+        },
+      },
+    );
+
+    const refreshToken = await reply.jwtSign(
+      {
+        role: user.role,
+      },
+      {
+        sign: {
+          sub: user.id,
+          expiresIn: "7d",
+        },
+      },
+    );
+
+    return reply
+      .setCookie("refreshToken", refreshToken, {
+        path: "/",
+        secure: true,
+        sameSite: true,
+        httpOnly: true,
+      })
+      .status(200)
+      .send({
+        token,
+      });
+  } catch (err) {
+    if (err instanceof InvalidCredentialsError) {
+      return reply.status(400).send({
+        message: err.message,
+      });
+    }
+
+    return reply.status(500).send();
+  }
+}
