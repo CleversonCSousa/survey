@@ -9,4 +9,6 @@ export interface SurveysRepository {
     surveys: Survey[];
     totalCount: number;
   }>;
+  findById(id: string): Promise<Survey | null>;
+  save(survey: Survey): Promise<Survey>;
 }

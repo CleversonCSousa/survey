@@ -27,4 +27,25 @@ export class PrismaSurveysRepository implements SurveysRepository {
       totalCount,
     };
   }
+
+  async findById(id: string): Promise<Survey | null> {
+    const survey = await prismaClient.survey.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    return survey;
+  }
+
+  async save(survey: Survey): Promise<Survey> {
+    const surveyCreated = await prismaClient.survey.update({
+      data: survey,
+      where: {
+        id: survey.id,
+      },
+    });
+
+    return surveyCreated;
+  }
 }

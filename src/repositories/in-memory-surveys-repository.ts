@@ -65,4 +65,24 @@ export class InMemorySurveysRepository implements SurveysRepository {
       totalCount: allItems.length,
     };
   }
+
+  async findById(id: string) {
+    const survey = this.items.find((item) => item.id === id);
+
+    if (!survey) {
+      return null;
+    }
+
+    return survey;
+  }
+
+  async save(survey: Survey) {
+    const itemIndex = this.items.findIndex((item) => item.id === survey.id);
+
+    if (itemIndex >= 0) {
+      this.items[itemIndex] = survey;
+    }
+
+    return survey;
+  }
 }
