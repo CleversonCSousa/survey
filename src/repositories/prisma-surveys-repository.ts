@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Survey } from "@prisma/client";
 import { prismaClient } from "@/lib/prisma/prismaClient.ts";
 import { SurveysRepository } from "./surveys-repository.ts";
 
@@ -8,5 +8,23 @@ export class PrismaSurveysRepository implements SurveysRepository {
       data,
     });
     return survey;
+  }
+  async findManyByCoordinatorId(coordinatorId: string, page: number) {
+    const [surveys, totalCount] = await prismaClient.$transaction([
+      prismaClient.survey.findMany({
+        where: { coordinatorId },
+        take: 20,
+        skip: (page - 1) * 20,
+        orderBy: { createdAt: "desc" },
+      }),
+      prismaClient.survey.count({
+        where: { coordinatorId },
+      }),
+    ]);
+
+    return {
+      surveys,
+      totalCount,
+    };
   }
 }

@@ -1,6 +1,6 @@
 import { Prisma, Survey, Question, Option } from "@prisma/client";
-import { SurveysRepository } from "../surveys-repository";
 import { randomUUID } from "node:crypto";
+import { SurveysRepository } from "./surveys-repository.ts";
 
 export class InMemorySurveysRepository implements SurveysRepository {
   public items: Survey[] = [];
@@ -14,13 +14,12 @@ export class InMemorySurveysRepository implements SurveysRepository {
       description: data.description ?? null,
       status: data.status ?? "DRAFT",
       coordinatorId: data.coordinatorId,
-      createdAt: new Date(),
+      createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
       updatedAt: new Date(),
     };
 
     this.items.push(survey);
 
-    // Simulando o Nested Write do Prisma para Questions
     if (data.questions?.create) {
       const questionsToCreate = Array.isArray(data.questions.create)
         ? data.questions.create
@@ -36,7 +35,6 @@ export class InMemorySurveysRepository implements SurveysRepository {
 
         this.questions.push(question);
 
-        // Simulando o Nested Write para Options
         if (q.options?.create) {
           const optionsToCreate = Array.isArray(q.options.create)
             ? q.options.create
@@ -54,5 +52,17 @@ export class InMemorySurveysRepository implements SurveysRepository {
     }
 
     return survey;
+  }
+  async findManyByCoordinatorId(coordinatorId: string, page: number) {
+    const allItems = this.items
+      .filter((item) => item.coordinatorId === coordinatorId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    const surveys = allItems.slice((page - 1) * 20, page * 20);
+
+    return {
+      surveys,
+      totalCount: allItems.length,
+    };
   }
 }
