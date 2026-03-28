@@ -60,12 +60,14 @@ model Option {
 model Response {
   id         String   @id @default(uuid())
   userId     String
-  optionId   String
   surveyId   String   
+  questionId String
+  optionId   String
   createdAt  DateTime @default(now())
 
   user       User     @relation(fields: [userId], references: [id])
   option     Option   @relation(fields: [optionId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id])
   
-  @@unique([userId, surveyId]) // Um usuário só vota uma vez por pesquisa
+  @@unique([userId, surveyId, questionId]) 
 }
