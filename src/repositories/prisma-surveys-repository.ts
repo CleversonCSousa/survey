@@ -1,6 +1,7 @@
 import { Prisma, Survey } from "@prisma/client";
 import { prismaClient } from "@/lib/prisma/prismaClient.ts";
 import { SurveysRepository } from "./surveys-repository.ts";
+import { SurveyStatus } from "@/@types/SurveyStatus.ts";
 
 export class PrismaSurveysRepository implements SurveysRepository {
   async create(data: Prisma.SurveyUncheckedCreateInput) {
@@ -47,5 +48,28 @@ export class PrismaSurveysRepository implements SurveysRepository {
     });
 
     return surveyCreated;
+  }
+
+  async findManyOpen(page: number) {
+    const [surveys, totalCount] = await prismaClient.$transaction([
+      prismaClient.survey.findMany({
+        where: {
+          status: "OPEN",
+        },
+        take: 20,
+        skip: (page - 1) * 20,
+        orderBy: { createdAt: "desc" },
+      }),
+      prismaClient.survey.count({
+        where: {
+          status: "OPEN",
+        },
+      }),
+    ]);
+
+    return {
+      surveys,
+      totalCount,
+    };
   }
 }

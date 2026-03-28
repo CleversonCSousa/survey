@@ -85,4 +85,19 @@ export class InMemorySurveysRepository implements SurveysRepository {
 
     return survey;
   }
+
+  async findManyOpen(page: number) {
+    const allOpenSurveys = this.items
+      .filter((item) => item.status === "OPEN")
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    const surveys = allOpenSurveys.slice((page - 1) * 20, page * 20);
+
+    const totalCount = allOpenSurveys.length;
+
+    return {
+      surveys,
+      totalCount,
+    };
+  }
 }
