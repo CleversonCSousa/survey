@@ -100,4 +100,42 @@ export class InMemorySurveysRepository implements SurveysRepository {
       totalCount,
     };
   }
+  async findByIdWithQuestions(id: string): Promise<
+    | ({
+        id: string;
+        title: string;
+        description: string | null;
+        status: string;
+        coordinatorId: string;
+        createdAt: Date;
+        updatedAt: Date;
+      } & { questions: Question[] })
+    | null
+  > {
+    const survey = this.items.find((item) => item.id === id);
+
+    if (!survey) {
+      return null;
+    }
+
+    const surveyQuestions = this.questions.filter(
+      (question) => question.surveyId === survey.id,
+    );
+
+    const questionsWithQuestions = surveyQuestions.map((question) => {
+      const questionOptions = this.options.filter(
+        (option) => option.questionId === question.id,
+      );
+
+      return {
+        ...question,
+        options: questionOptions,
+      };
+    });
+
+    return {
+      ...survey,
+      questions: questionsWithQuestions,
+    } as any;
+  }
 }

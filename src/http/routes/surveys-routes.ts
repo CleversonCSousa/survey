@@ -5,6 +5,7 @@ import { verifyUserRole } from "../middlewares/verify-user-role.ts";
 import { fetchCoordinatorSurveys } from "../controllers/surveys/fetch-coordinator-surveys.ts";
 import { toggleStatus } from "../controllers/surveys/toggle-status.ts";
 import { fetchOpenSurveys } from "../controllers/surveys/fetch-open-surveys.ts";
+import { voteOnSurvey } from "../controllers/surveys/vote-on-survey.ts";
 
 export async function surveysRoutes(app: FastifyInstance) {
   // Protected routes!
@@ -17,4 +18,7 @@ export async function surveysRoutes(app: FastifyInstance) {
   });
 
   app.get("/", fetchOpenSurveys);
+
+  app.addHook("onRequest", verifyJWT);
+  app.post("/:surveyId/votes", voteOnSurvey);
 }

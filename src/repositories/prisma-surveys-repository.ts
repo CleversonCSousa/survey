@@ -39,6 +39,20 @@ export class PrismaSurveysRepository implements SurveysRepository {
     return survey;
   }
 
+  async findByIdWithQuestions(id: string) {
+    const survey = await prismaClient.survey.findUnique({
+      where: {
+        id,
+      },
+      relationLoadStrategy: "join",
+      include: {
+        questions: true,
+      },
+    });
+
+    return survey;
+  }
+
   async save(survey: Survey): Promise<Survey> {
     const surveyCreated = await prismaClient.survey.update({
       data: survey,
@@ -71,5 +85,15 @@ export class PrismaSurveysRepository implements SurveysRepository {
       surveys,
       totalCount,
     };
+  }
+  async findByUserAndSurvey(userId: string, surveyId: string) {
+    const response = await prismaClient.response.findFirst({
+      where: {
+        userId,
+        surveyId,
+      },
+    });
+
+    return response;
   }
 }
