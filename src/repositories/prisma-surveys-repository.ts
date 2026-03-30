@@ -86,14 +86,4 @@ export class PrismaSurveysRepository implements SurveysRepository {
       totalCount,
     };
   }
-  async findByUserAndSurvey(userId: string, surveyId: string) {
-    const response = await prismaClient.response.findFirst({
-      where: {
-        userId,
-        surveyId,
-      },
-    });
-
-    return response;
-  }
 }
