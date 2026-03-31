@@ -1,6 +1,6 @@
 import { Prisma, Response } from "@prisma/client";
 import { randomUUID } from "node:crypto";
-import { ResponsesRepository } from "./responses-repository.ts";
+import { ResponseCount, ResponsesRepository } from "./responses-repository.ts";
 
 export class InMemoryResponsesRepository implements ResponsesRepository {
   public items: Response[] = [];
@@ -30,5 +30,24 @@ export class InMemoryResponsesRepository implements ResponsesRepository {
     }
 
     return response;
+  }
+  async countGroupBySurveyId(surveyId: string) {
+    const surveyResponses = this.items.filter(
+      (item) => item.surveyId === surveyId,
+    );
+
+    const counts = surveyResponses.reduce((acc, response) => {
+      const existing = acc.find((item) => item.optionId === response.optionId);
+
+      if (existing) {
+        existing.count++;
+      } else {
+        acc.push({ optionId: response.optionId, count: 1 });
+      }
+
+      return acc;
+    }, [] as ResponseCount[]);
+
+    return counts;
   }
 }

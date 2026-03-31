@@ -1,6 +1,9 @@
 import { Prisma, Survey } from "@prisma/client";
 import { prismaClient } from "@/lib/prisma/prismaClient.ts";
-import { SurveysRepository } from "./surveys-repository.ts";
+import {
+  SurveysRepository,
+  SurveyWithQuestionsAndOptions,
+} from "./surveys-repository.ts";
 import { SurveyStatus } from "@/@types/SurveyStatus.ts";
 
 export class PrismaSurveysRepository implements SurveysRepository {
@@ -39,14 +42,19 @@ export class PrismaSurveysRepository implements SurveysRepository {
     return survey;
   }
 
-  async findByIdWithQuestions(id: string) {
+  async findByIdWithQuestions(
+    id: string,
+  ): Promise<SurveyWithQuestionsAndOptions | null> {
     const survey = await prismaClient.survey.findUnique({
       where: {
         id,
       },
-      relationLoadStrategy: "join",
       include: {
-        questions: true,
+        questions: {
+          include: {
+            options: true,
+          },
+        },
       },
     });
 

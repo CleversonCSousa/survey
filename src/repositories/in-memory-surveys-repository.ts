@@ -1,6 +1,9 @@
 import { Prisma, Survey, Question, Option } from "@prisma/client";
 import { randomUUID } from "node:crypto";
-import { SurveysRepository } from "./surveys-repository.ts";
+import {
+  SurveysRepository,
+  SurveyWithQuestionsAndOptions,
+} from "./surveys-repository.ts";
 
 export class InMemorySurveysRepository implements SurveysRepository {
   public items: Survey[] = [];
@@ -27,7 +30,7 @@ export class InMemorySurveysRepository implements SurveysRepository {
 
       questionsToCreate.forEach((q) => {
         const question: Question = {
-          id: randomUUID(),
+          id: q.id ?? randomUUID(),
           surveyId: survey.id,
           text: q.text,
           order: q.order,
@@ -42,7 +45,7 @@ export class InMemorySurveysRepository implements SurveysRepository {
 
           optionsToCreate.forEach((o) => {
             this.options.push({
-              id: randomUUID(),
+              id: o.id ?? randomUUID(),
               questionId: question.id,
               text: o.text,
             });
@@ -100,42 +103,29 @@ export class InMemorySurveysRepository implements SurveysRepository {
       totalCount,
     };
   }
-  async findByIdWithQuestions(id: string): Promise<
-    | ({
-        id: string;
-        title: string;
-        description: string | null;
-        status: string;
-        coordinatorId: string;
-        createdAt: Date;
-        updatedAt: Date;
-      } & { questions: Question[] })
-    | null
-  > {
+  async findByIdWithQuestions(id: string) {
     const survey = this.items.find((item) => item.id === id);
 
     if (!survey) {
       return null;
     }
 
-    const surveyQuestions = this.questions.filter(
-      (question) => question.surveyId === survey.id,
-    );
+    const surveyQuestions = this.questions
+      .filter((question) => question.surveyId === survey.id)
+      .map((question) => {
+        const questionOptions = this.options.filter(
+          (option) => option.questionId === question.id,
+        );
 
-    const questionsWithQuestions = surveyQuestions.map((question) => {
-      const questionOptions = this.options.filter(
-        (option) => option.questionId === question.id,
-      );
-
-      return {
-        ...question,
-        options: questionOptions,
-      };
-    });
+        return {
+          ...question,
+          options: questionOptions,
+        };
+      });
 
     return {
       ...survey,
-      questions: questionsWithQuestions,
-    } as any;
+      questions: surveyQuestions,
+    };
   }
 }

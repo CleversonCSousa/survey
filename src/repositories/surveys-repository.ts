@@ -1,9 +1,10 @@
-import { Prisma, Question, Survey } from "@prisma/client";
+import { Option, Prisma, Question, Survey } from "@prisma/client";
 
-type SurveyWithQuestions = Survey & {
-  questions: Question[];
+export type SurveyWithQuestionsAndOptions = Survey & {
+  questions: (Question & {
+    options: Option[];
+  })[];
 };
-
 export interface SurveysRepository {
   create(data: Prisma.SurveyUncheckedCreateInput): Promise<Survey>;
   findManyByCoordinatorId(
@@ -19,5 +20,7 @@ export interface SurveysRepository {
     surveys: Survey[];
     totalCount: number;
   }>;
-  findByIdWithQuestions(id: string): Promise<SurveyWithQuestions | null>;
+  findByIdWithQuestions(
+    id: string,
+  ): Promise<SurveyWithQuestionsAndOptions | null>;
 }

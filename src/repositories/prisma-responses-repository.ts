@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { ResponsesRepository } from "./responses-repository.ts";
+import { ResponseCount, ResponsesRepository } from "./responses-repository.ts";
 import { prismaClient } from "@/lib/prisma/prismaClient.ts";
 
 export class PrismaResponsesRepository implements ResponsesRepository {
@@ -17,5 +17,24 @@ export class PrismaResponsesRepository implements ResponsesRepository {
     });
 
     return response;
+  }
+
+  async countGroupBySurveyId(surveyId: string): Promise<ResponseCount[]> {
+    const groups = await prismaClient.response.groupBy({
+      by: ["optionId"],
+      where: {
+        surveyId,
+      },
+      _count: {
+        optionId: true,
+      },
+    });
+
+    return groups.map((group) => {
+      return {
+        optionId: group.optionId,
+        count: group._count.optionId,
+      };
+    });
   }
 }

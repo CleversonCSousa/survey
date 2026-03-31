@@ -6,6 +6,7 @@ import { fetchCoordinatorSurveys } from "../controllers/surveys/fetch-coordinato
 import { toggleStatus } from "../controllers/surveys/toggle-status.ts";
 import { fetchOpenSurveys } from "../controllers/surveys/fetch-open-surveys.ts";
 import { voteOnSurvey } from "../controllers/surveys/vote-on-survey.ts";
+import { getResults } from "../controllers/surveys/get-results.ts";
 
 export async function surveysRoutes(app: FastifyInstance) {
   // Protected routes!
@@ -15,6 +16,7 @@ export async function surveysRoutes(app: FastifyInstance) {
     protectedRoutes.post("/", create);
     protectedRoutes.get("/me", fetchCoordinatorSurveys);
     protectedRoutes.patch("/:id/status", toggleStatus);
+    protectedRoutes.get("/:surveyId/results", getResults);
   });
 
   app.get("/", fetchOpenSurveys);
