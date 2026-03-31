@@ -2,6 +2,7 @@ import { ResponsesRepository } from "@/repositories/responses-repository.ts";
 import { SurveysRepository } from "@/repositories/surveys-repository.ts";
 import { ResourceNotFoundError } from "../errors/resource-not-found-error.ts";
 import { NotAllowedError } from "../errors/not-allowed-error.ts";
+import { redis } from "@/lib/redis/redis.ts";
 
 interface GetSurveyResultsUseCaseRequest {
   surveyId: string;
@@ -46,6 +47,14 @@ export class GetSurveyResultsUseCase {
     if (survey.coordinatorId !== userId) {
       throw new NotAllowedError();
     }
+    const cacheKey = `survey:${surveyId}:results`;
+    const cachedResults = await redis.get(cacheKey);
+
+    if (cachedResults) {
+      return {
+        survey: JSON.parse(cachedResults),
+      };
+    }
 
     const counts =
       await this.responsesRepository.countGroupBySurveyId(surveyId);
@@ -79,6 +88,18 @@ export class GetSurveyResultsUseCase {
         options,
       };
     });
+
+    await redis.set(
+      cacheKey,
+      JSON.stringify({
+        id: surveyId,
+        title: survey.title,
+        status: survey.status,
+        questions,
+      }),
+      "EX",
+      60,
+    );
 
     return {
       survey: {

@@ -4,6 +4,7 @@ import { ResourceNotFoundError } from "../errors/resource-not-found-error.ts";
 import { IncompleteResponseError } from "../errors/incomplete-response-error.ts";
 import { SurveyNotOpenError } from "../errors/survey-not-open-error.ts";
 import { UserAlreadyRespondedError } from "../errors/user-already-responded-error.ts";
+import { redis } from "@/lib/redis/redis.ts";
 
 interface VoteOnSurveyUseCaseRequest {
   userId: string;
@@ -50,6 +51,9 @@ export class VoteOnSurveyUseCase {
       };
     });
 
+    const cacheKey = `survey:${surveyId}:results`;
+
     await this.responsesRepository.createMany(responsesFormatted);
+    await redis.del(cacheKey);
   }
 }
