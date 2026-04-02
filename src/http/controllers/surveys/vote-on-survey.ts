@@ -1,3 +1,4 @@
+import { voteOnSurveyParamsSchema } from "@/http/schemas/surveys/vote-on-survey-schema.ts";
 import { makeVoteOnSurveyUseCase } from "@/use-cases/factories/make-vote-on-survey-use-case.ts";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
@@ -6,10 +7,6 @@ export async function voteOnSurvey(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const voteOnSurveyParamsSchema = z.object({
-    surveyId: z.uuid(),
-  });
-
   const voteOnSurveyBodySchema = z.object({
     responses: z
       .array(

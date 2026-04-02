@@ -1,23 +1,9 @@
-import { z } from "zod";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { PrismaSurveysRepository } from "@/repositories/prisma-surveys-repository.ts";
-import { CreateSurveyUseCase } from "@/use-cases/surveys/create.ts";
 import { InvalidSurveyStructureError } from "@/use-cases/errors/invalid-survey-structure-error.ts";
 import { makeCreateSurveyUseCase } from "@/use-cases/factories/make-create-survey-use-case.ts";
+import { createSurveyBodySchema } from "@/http/schemas/surveys/create-survey-body-schema.ts";
 
 export async function create(request: FastifyRequest, reply: FastifyReply) {
-  const createSurveyBodySchema = z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    questions: z.array(
-      z.object({
-        text: z.string(),
-        options: z.array(z.string().min(1)),
-      }),
-    ),
-    status: z.enum(["DRAFT", "OPEN", "CLOSED"]).optional().default("DRAFT"),
-  });
-
   try {
     const { questions, status, title, description } =
       createSurveyBodySchema.parse(request.body);

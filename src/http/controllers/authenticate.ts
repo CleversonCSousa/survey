@@ -1,19 +1,14 @@
-import { z } from "zod";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { PrismaUsersRepository } from "@/repositories/prisma-users-repository.ts";
 import { AuthenticateUseCase } from "@/use-cases/authenticate.ts";
 import { InvalidCredentialsError } from "@/use-cases/errors/invalid-credentials-error.ts";
+import { authenticateBodySchema } from "../schemas/authenticate-schema.ts";
 
 export async function authenticate(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const registerBodySchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(6),
-  });
-
-  const { email, password } = registerBodySchema.parse(request.body);
+  const { email, password } = authenticateBodySchema.parse(request.body);
 
   try {
     const usersRepository = new PrismaUsersRepository();

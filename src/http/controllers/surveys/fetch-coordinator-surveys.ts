@@ -1,15 +1,11 @@
+import { fetchCoordinatorSurveysQuerySchema } from "@/http/schemas/surveys/fetch-coordinator-surveys-schema.ts";
 import { makeFetchCoordinatorSurveysUseCase } from "@/use-cases/factories/make-fetch-coordinator-surveys.ts";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
 
 export async function fetchCoordinatorSurveys(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const fetchCoordinatorSurveysQuerySchema = z.object({
-    page: z.coerce.number().min(1).default(1),
-  });
-
   const { page } = fetchCoordinatorSurveysQuerySchema.parse(request.query);
 
   const fetchCoordinatorSurveysUseCase = makeFetchCoordinatorSurveysUseCase();
