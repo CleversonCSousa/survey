@@ -1,4 +1,4 @@
-import { z } from "zod";
+import z from "zod";
 import { authenticate } from "../controllers/authenticate.ts";
 import { FastifyInstance } from "fastify";
 import { registerBodySchema } from "../schemas/register-schema.ts";
@@ -20,7 +20,9 @@ export async function usersRoutes(app: FastifyInstance) {
           409: z
             .object({ message: z.string() })
             .describe("Conflito: E-mail já cadastrado"),
-          500: z.null().describe("Erro interno no servidor"),
+          500: z
+            .object({ message: z.string() })
+            .describe("Erro interno no servidor"),
         },
       },
     },
@@ -47,7 +49,9 @@ export async function usersRoutes(app: FastifyInstance) {
               message: z.string(),
             })
             .describe("Credenciais inválidas (E-mail ou senha incorretos)"),
-          500: z.null().describe("Erro interno no servidor"),
+          500: z
+            .object({ message: z.string() })
+            .describe("Erro interno no servidor"),
         },
       },
     },

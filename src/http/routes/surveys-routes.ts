@@ -7,13 +7,62 @@ import { toggleStatus } from "../controllers/surveys/toggle-status.ts";
 import { fetchOpenSurveys } from "../controllers/surveys/fetch-open-surveys.ts";
 import { voteOnSurvey } from "../controllers/surveys/vote-on-survey.ts";
 import { getResults } from "../controllers/surveys/get-results.ts";
+import { createSurveyBodySchema } from "../schemas/surveys/create-survey-body-schema.ts";
+import { z } from "zod";
 
 export async function surveysRoutes(app: FastifyInstance) {
   // Protected routes!
   app.register(async (protectedRoutes) => {
     protectedRoutes.addHook("onRequest", verifyJWT);
     protectedRoutes.addHook("onRequest", verifyUserRole("COORDINATOR"));
-    protectedRoutes.post("/", create);
+    protectedRoutes.post(
+      "/",
+      {
+        schema: {
+          tags: ["Surveys"],
+          summary: "Criar uma nova pesquisa",
+          description:
+            "Cria uma nova pesquisa no sistema associada ao coordenador autenticado.",
+          body: createSurveyBodySchema,
+          security: [{ bearerAuth: [] }],
+          response: {
+            201: z.null().describe("Pesquisa criada com sucesso"),
+            400: z
+              .object({
+                message: z.string(),
+                issues: z.any().optional(),
+              })
+              .describe("Erro de validação de dados ou estrutura"),
+            401: z
+              .object({
+                message: z.string(),
+              })
+              .describe("Token JWT ausente ou inválido"),
+            403: z
+              .object({
+                message: z.string(),
+              })
+              .describe("Usuário sem permissão de Coordenador"),
+            404: z
+              .object({
+                message: z.string(),
+              })
+              .describe("Recurso não encontrado"),
+            409: z
+              .object({
+                message: z.string(),
+              })
+              .describe("Conflito ao processar a requisição"),
+            500: z
+              .object({
+                message: z.string(),
+              })
+              .describe("Erro interno no servidor"),
+          },
+        },
+      },
+      create,
+    );
     protectedRoutes.get("/me", fetchCoordinatorSurveys);
     protectedRoutes.patch("/:id/status", toggleStatus);
     protectedRoutes.get("/:surveyId/results", getResults);
