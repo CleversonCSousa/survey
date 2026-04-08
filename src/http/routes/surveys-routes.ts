@@ -9,6 +9,7 @@ import { voteOnSurvey } from "../controllers/surveys/vote-on-survey.ts";
 import { getResults } from "../controllers/surveys/get-results.ts";
 import { createSurveyBodySchema } from "../schemas/surveys/create-survey-body-schema.ts";
 import { z } from "zod";
+import { fetchCoordinatorSurveysQuerySchema } from "../schemas/surveys/fetch-coordinator-surveys-schema.ts";
 
 export async function surveysRoutes(app: FastifyInstance) {
   // Protected routes!
@@ -63,7 +64,62 @@ export async function surveysRoutes(app: FastifyInstance) {
       },
       create,
     );
-    protectedRoutes.get("/me", fetchCoordinatorSurveys);
+    protectedRoutes.get(
+      "/me",
+      {
+        schema: {
+          tags: ["Surveys"],
+          summary: "Listar pesquisas do coordenador",
+          description:
+            "Retorna todas as pesquisas criadas pelo coordenador autenticado com paginação.",
+          security: [{ bearerAuth: [] }],
+          querystring: fetchCoordinatorSurveysQuerySchema,
+          response: {
+            200: z
+              .object({
+                surveys: z.array(
+                  z.object({
+                    id: z.string(),
+                    title: z.string(),
+                    description: z.string().nullable(),
+                    status: z.enum(["DRAFT", "OPEN", "CLOSED"]),
+                    createdAt: z.date(),
+                  }),
+                ),
+                meta: z.object({
+                  page: z.number(),
+                  perPage: z.number(),
+                  totalCount: z.number(),
+                  totalPages: z.number(),
+                }),
+              })
+              .describe("Lista de pesquisas retornada com sucesso"),
+            400: z
+              .object({
+                message: z.string(),
+                issues: z.any().optional(),
+              })
+              .describe("Erro de validação na query string"),
+            401: z
+              .object({
+                message: z.string(),
+              })
+              .describe("Token JWT ausente ou inválido"),
+            403: z
+              .object({
+                message: z.string(),
+              })
+              .describe("Acesso negado: Apenas para Coordenadores"),
+            500: z
+              .object({
+                message: z.string(),
+              })
+              .describe("Erro interno no servidor"),
+          },
+        },
+      },
+      fetchCoordinatorSurveys,
+    );
     protectedRoutes.patch("/:id/status", toggleStatus);
     protectedRoutes.get("/:surveyId/results", getResults);
   });
